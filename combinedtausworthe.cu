@@ -19,7 +19,7 @@ const int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
 __global__ void RandomCT(llu *device_array, int npr) {
     const int tid = blockDim.x * blockIdx.x + threadIdx.x;
     
-    llu seed = tid;
+    llu seed = 10 * tid + 5;
 
     llu b;
     for (int i = 0; i < npr; ++i) {
@@ -47,9 +47,9 @@ int main() {
 
     cudaMemcpy(host_copy, device_array, RAND_N * sizeof(llu), cudaMemcpyDeviceToHost);
     
-    for (int i = 0; i < 10; ++i) {
-        printf("%llu\n", host_copy[i]);
-    }
+    // for (int i = 0; i < 10; ++i) {
+    //     printf("%llu\n", host_copy[i]);
+    // }
 
     return 0;
 }
