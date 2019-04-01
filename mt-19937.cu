@@ -1,4 +1,26 @@
 #include "mt-19937.h"
+#include <stdio.h>
+
+#define DCMT_SEED 4172
+#define MT_RNG_PERIOD 607
+#define MT_RNG_COUNT 4096
+#define MT_MM 9
+#define MT_NN 19
+#define MT_WMASK 0xFFFFFFFFU
+#define MT_UMASK 0xFFFFFFFEU
+#define MT_LMASK 0x1U
+#define MT_SHIFT0 12
+#define MT_SHIFTB 7
+#define MT_SHIFTC 15
+#define MT_SHIFT1 18
+#define PI 3.14159265358979f
+
+typedef struct{
+    unsigned int matrix_a;
+    unsigned int mask_b;
+    unsigned int mask_c;
+    unsigned int seed;
+} mt_struct_stripped;
 
 static mt_struct MT[MT_RNG_COUNT];
 static uint32_t state[MT_NN];
@@ -201,7 +223,7 @@ int main()
     //Allocating memory
     h_randCPU_out  = (float *)malloc(RAND_N * sizeof(float));
     h_randGPU_out  = (float *)malloc(RAND_N * sizeof(float));
-    cudaMalloc((void **)&d_rand_out, RAND_N * sizeof(float))
+    cudaMalloc((void **)&d_rand_out, RAND_N * sizeof(float));
 
 
     fprintf(log_file, "Loading CPU and GPU twisters configurations...\n");
@@ -209,7 +231,7 @@ int main()
     loadMTGPU('data/MersenneTwister.dat');
     seedMTGPU(SEED);
 
-    cutCreateTimer(&hTimer)
+    cutCreateTimer(&hTimer);
 
     int numIterations = 100;
 	for (int i = -1; i < numIterations; i++)
@@ -226,10 +248,10 @@ int main()
     #endif
     }
 
-    cudaThreadSynchronize()
+    cudaThreadSynchronize();
 
     fprintf(log_file, "MersenneTwister, Throughput = %.4f GNumbers/s, Time = %.5f s, Size = %u Numbers, NumDevsUsed = %u, Workgroup = %u\n", 1.0e-9 * RAND_N / gpuTime, gpuTime, RAND_N, 1, 128);
-    cudaMemcpy(h_randGPU_out, d_rand_out, RAND_N * sizeof(float), cudaMemcpyDeviceToHost)
+    cudaMemcpy(h_randGPU_out, d_rand_out, RAND_N * sizeof(float), cudaMemcpyDeviceToHost);
 
     //time this
     RandomRef(h_RandCPU, N_PER_RNG, SEED);
