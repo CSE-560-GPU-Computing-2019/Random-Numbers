@@ -1,5 +1,7 @@
 #include "mt-19937.h"
 #include <stdio.h>
+#include <stdint.h>
+// #include <shrUtils.h>
 
 #define DCMT_SEED 4172
 #define MT_RNG_PERIOD 607
@@ -15,6 +17,20 @@
 #define MT_SHIFT1 18
 #define PI 3.14159265358979f
 
+#define SHIFT1 18
+
+
+typedef struct {
+    uint32_t aaa;
+    int mm,nn,rr,ww;
+    uint32_t wmask,umask,lmask;
+    int shift0, shift1, shiftB, shiftC;
+    uint32_t maskB, maskC;
+    int i;
+    uint32_t *state;
+}mt_struct;
+
+
 typedef struct{
     unsigned int matrix_a;
     unsigned int mask_b;
@@ -25,10 +41,60 @@ typedef struct{
 static mt_struct MT[MT_RNG_COUNT];
 static uint32_t state[MT_NN];
 
-const int    PATH_N = 24000000;
-const int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
-const int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
-const unsigned int SEED = 777;
+
+
+void sgenrand_mt(uint32_t seed, mt_struct *mts){
+    int i;
+
+    mts->state[0] = seed & mts->wmask;
+
+    for(i = 1; i < mts->nn; i++){
+        mts->state[i] = (UINT32_C(1812433253) * (mts->state[i - 1] ^ (mts->state[i - 1] >> 30)) + i) & mts->wmask;
+        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
+        /* In the previous versions, MSBs of the seed affect   */
+        /* only MSBs of the array mt[].                        */
+    }
+    mts->i = mts->nn;
+}
+
+
+uint32_t genrand_mt(mt_struct *mts){
+    uint32_t *st, uuu, lll, aa, x;
+    int k,n,m,lim;
+
+    if(mts->i >= mts->nn ){
+        n = mts->nn; m = mts->mm;
+        aa = mts->aaa;
+        st = mts->state;
+        uuu = mts->umask; lll = mts->lmask;
+
+        lim = n - m;
+        for(k = 0; k < lim; k++){
+            x = (st[k]&uuu)|(st[k+1]&lll);
+            st[k] = st[k + m] ^ (x >> 1) ^ (x&1U ? aa : 0U);
+        }
+
+        lim = n - 1;
+        for(; k < lim; k++){
+            x = (st[k] & uuu)|(st[k + 1] & lll);
+            st[k] = st[k + m - n] ^ (x >> 1) ^ (x & 1U ? aa : 0U);
+        }
+
+        x = (st[n - 1] & uuu)|(st[0] & lll);
+        st[n - 1] = st[m - 1] ^ (x >> 1) ^ (x&1U ? aa : 0U);
+        mts->i=0;
+    }
+
+    x = mts->state[mts->i];
+    mts->i += 1;
+    x ^= x >> mts->shift0;
+    x ^= (x << mts->shiftB) & mts->maskB;
+    x ^= (x << mts->shiftC) & mts->maskC;
+    x ^= x >> mts->shift1;
+
+    return x;
+}
+
 
 
 int iDivUp(int a, int b)
@@ -53,23 +119,30 @@ int iAlignDown(int a, int b)
     return a - a % b;
 }
 
+
+const int    PATH_N = 24000000;
+const int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
+const int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
+const unsigned int SEED = 777;
+
+__device__ static mt_struct_stripped ds_MT[MT_RNG_COUNT];
+static mt_struct_stripped h_MT[MT_RNG_COUNT];
+
 /////////////////////////
 void initMTRef(const char *fname)
 {
 
     FILE *fd = fopen(fname, "rb");
-    if(!fd){
-        shrLog("initMTRef(): failed to open %s\n", fname);
-        shrLog("FAILED\n");
+    if(!fd)
+    {
         exit(0);
     }
 
     for (int i = 0; i < MT_RNG_COUNT; i++){
         //Inline structure size for compatibility,
         //since pointer types are 8-byte on 64-bit systems (unused *state variable)
-        if( !fread(MT + i, 16 /* sizeof(mt_struct) */ * sizeof(int), 1, fd) ){
-            shrLog("initMTRef(): failed to load %s\n", fname);
-            shrLog("FAILED\n");
+        if( !fread(MT + i, 16 /* sizeof(mt_struct) */ * sizeof(int), 1, fd) )
+        {
             exit(0);
         }
     }
@@ -92,36 +165,16 @@ void RandomRef(float *h_Random, int NPerRng, unsigned int seed)
 }
 
 
-static void BoxMuller(float& u1, float& u2)
-{
-    float   r = sqrtf(-2.0f * logf(u1));
-    float phi = 2 * PI * u2;
-    u1 = r * cosf(phi);
-    u2 = r * sinf(phi);
-}
-
-
-void BoxMullerRef(float *h_Random, int NPerRng)
-{
-    int i;
-
-    for(i = 0; i < MT_RNG_COUNT * NPerRng; i += 2)
-        BoxMuller(h_Random[i + 0], h_Random[i + 1]);
-}
-
-
 //////////////////////////
 void loadMTGPU(const char *fname)
 {
     FILE *fd = fopen(fname, "rb");
-    if(!fd){
-        shrLog("initMTGPU(): failed to open %s\n", fname);
-        shrLog("FAILED\n");
+    if(!fd)
+    {
         exit(0);
     }
-    if( !fread(h_MT, sizeof(h_MT), 1, fd) ){
-        shrLog("initMTGPU(): failed to load %s\n", fname);
-        shrLog("FAILED\n");
+    if( !fread(h_MT, sizeof(h_MT), 1, fd) )
+    {
         exit(0);
     }
     fclose(fd);
@@ -137,7 +190,7 @@ void seedMTGPU(unsigned int seed){
         MT[i]      = h_MT[i];
         MT[i].seed = seed;
     }
-    CUDA_SAFE_CALL( cudaMemcpyToSymbol(ds_MT, MT, sizeof(h_MT)) );
+    cudaMemcpyToSymbol(ds_MT, MT, sizeof(h_MT));
 
     free(MT);
 }
@@ -192,27 +245,6 @@ __global__ void gpuRand(float *d_Random, int nPerRng)
 }
 
 
-__device__ inline void BoxMuller(float& u1, float& u2)
-{
-    float   r = sqrtf(-2.0f * logf(u1));
-    float phi = 2 * PI * u2;
-    u1 = r * __cosf(phi);
-    u2 = r * __sinf(phi);
-}
-
-
-__global__ void BoxMullerGPU(float *d_Random, int nPerRng)
-{
-    const int      tid = blockDim.x * blockIdx.x + threadIdx.x;
-
-    for (int iOut = 0; iOut < nPerRng; iOut += 2)
-        BoxMuller(
-                d_Random[tid + (iOut + 0) * MT_RNG_COUNT],
-                d_Random[tid + (iOut + 1) * MT_RNG_COUNT]
-                );
-}
-
-
 int main()
 {
     FILE *log_file;
@@ -225,13 +257,14 @@ int main()
     h_randGPU_out  = (float *)malloc(RAND_N * sizeof(float));
     cudaMalloc((void **)&d_rand_out, RAND_N * sizeof(float));
 
-
-    fprintf(log_file, "Loading CPU and GPU twisters configurations...\n");
-    initMTRef('data/MersenneTwister.raw');
-    loadMTGPU('data/MersenneTwister.dat');
+    initMTRef("data/MersenneTwister.raw");
+    loadMTGPU("data/MersenneTwister.dat");
     seedMTGPU(SEED);
 
-    cutCreateTimer(&hTimer);
+    float hTimer;
+    cudaEvent_t start, stop;
+    cudaEventCreate (&start);
+	cudaEventCreate (&stop);
 
     int numIterations = 100;
 	for (int i = -1; i < numIterations; i++)
@@ -239,25 +272,28 @@ int main()
 		if (i == 0)
 		{
 			cudaThreadSynchronize();
-			cutResetTimer(hTimer);
-			cutStartTimer(hTimer);
+			cudaEventRecord(start, 0);
 		}
-	RandomGPU<<<32, 128>>>(d_Rand, N_PER_RNG);
-    #ifdef DO_BOXMULLER
-    BoxMullerGPU<<<32, 128>>>(d_Rand, N_PER_RNG);
-    #endif
+	gpuRand<<<32, 128>>>(d_rand_out, N_PER_RNG);
     }
 
-    cudaThreadSynchronize();
+    cudaEventRecord (stop, 0);
+	cudaEventSynchronize (stop);
+	cudaEventElapsedTime (&hTimer, start, stop);
+    float gpuTime = 1.0e-3 * hTimer/(double)numIterations;
 
-    fprintf(log_file, "MersenneTwister, Throughput = %.4f GNumbers/s, Time = %.5f s, Size = %u Numbers, NumDevsUsed = %u, Workgroup = %u\n", 1.0e-9 * RAND_N / gpuTime, gpuTime, RAND_N, 1, 128);
+    fprintf(log_file, "MersenneTwister (GPU), Time = %f s, TP = %f GNumbers/s, Size = %u\n", gpuTime, 1.0e-9 * RAND_N / gpuTime, RAND_N);
     cudaMemcpy(h_randGPU_out, d_rand_out, RAND_N * sizeof(float), cudaMemcpyDeviceToHost);
 
-    //time this
-    RandomRef(h_RandCPU, N_PER_RNG, SEED);
-    #ifdef DO_BOXMULLER
-    BoxMullerRef(h_RandCPU, N_PER_RNG);
-    #endif
+    float hTimer_cpu;
+    cudaEventRecord(start, 0);
+    RandomRef(h_randCPU_out, N_PER_RNG, SEED);
+    cudaEventRecord (stop, 0);
+    cudaEventElapsedTime (&hTimer_cpu, start, stop);
+    float cpuTime = 1.0e-3 * hTimer_cpu/(double)numIterations;
 
+    fprintf(log_file, "MersenneTwister (CPU), Time = %f s, TP = %f GNumbers/s, Size = %u\n", cpuTime, 1.0e-9 * RAND_N / cpuTime, RAND_N);
+
+    cudaFree(d_rand_out);
     return 0;
 }
