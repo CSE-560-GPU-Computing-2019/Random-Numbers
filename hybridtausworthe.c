@@ -48,8 +48,7 @@ void initstate(tauswortheState *s, llu seed) {
 
 int main() {
     llu seed = 1232;
-    tauswortheState *state;
-    // printf("\n");
+    tauswortheState *state = (tauswortheState *)malloc(sizeof(tauswortheState));;
     initstate(state, seed);
     llu randNum;
     for (int i = 0; i < 10; ++i) {
