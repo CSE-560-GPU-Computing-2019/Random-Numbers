@@ -1,7 +1,10 @@
 #include "mt-19937.h"
 #include <stdio.h>
 #include <stdint.h>
+<<<<<<< HEAD
 // #include <shrUtils.h>
+=======
+>>>>>>> bca7277f2af986aa2b908854358b226236f595a9
 
 #define DCMT_SEED 4172
 #define MT_RNG_PERIOD 607

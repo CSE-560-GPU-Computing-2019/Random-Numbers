@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <iostream>
+using namespace std;
 
 typedef unsigned long long llu;
 
@@ -33,19 +35,44 @@ __global__ void RandomCT(llu *device_array, int npr) {
 
 int main() {
     llu *device_array;
+	cudaEvent_t start, stop, memstart, memstop;
+	cudaEventCreate(&memstart);
+	cudaEventCreate(&memstop);
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
     
     llu *host_array;
     llu *host_copy;
 
     host_array = (llu *)malloc(RAND_N * sizeof(llu));
     host_copy = (llu *)malloc(RAND_N * sizeof(llu));
+	cudaEventRecord(memstart);
     cudaMalloc((void**)&device_array, RAND_N * sizeof(llu));
 
     // int iters = 100;
     // for (int i = 0; )
+	cudaEventRecord(start);
     RandomCT<<<32, 128>>>(device_array, N_PER_RNG);
+	cudaEventRecord(stop);
 
     cudaMemcpy(host_copy, device_array, RAND_N * sizeof(llu), cudaMemcpyDeviceToHost);
+	cudaEventRecord(memstop);
+
+	cudaEventSynchronize(stop);
+	cudaEventSynchronize(memstop);
+	
+
+	float kernelTime, totalTime;
+	cudaEventElapsedTime(&kernelTime, start, stop);
+    cudaEventElapsedTime(&totalTime, memstart, memstop);
+    kernelTime /= 1000.0f;
+    totalTime /= 1000.0f;
+	
+
+	cout << "Time taken for " << RAND_N << " random numbers: \n";
+	cout << "Kernel Execution time: " << kernelTime << "s\n";
+	cout << "Overall Time: " << totalTime << "s\n";
+
     
     // for (int i = 0; i < 10; ++i) {
     //     printf("%llu\n", host_copy[i]);

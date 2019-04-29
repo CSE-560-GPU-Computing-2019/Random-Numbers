@@ -1,6 +1,22 @@
 #include <stdio.h>
+#include <ctime>
+#include <stdlib.h>
 
 typedef unsigned long long llu;
+
+int iAlignUp(int a, int b){
+    return ((a % b) != 0) ?  (a - a % b + b) : a;
+}
+
+int iDivUp(int a, int b){
+    return ((a % b) != 0) ? (a / b + 1) : (a / b);
+}
+
+#define MT_RNG_COUNT 4096
+
+const int    PATH_N = 24000000;
+const int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
+const int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
 
 typedef struct {
     llu s1, s2, s3, s4;
@@ -49,10 +65,16 @@ void initstate(tauswortheState *s, llu seed) {
 int main() {
     llu seed = 1232;
     tauswortheState *state = (tauswortheState *)malloc(sizeof(tauswortheState));;
+    
+    const clock_t begin_time = clock();
+
     initstate(state, seed);
     llu randNum;
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < RAND_N; ++i) {
         randNum = gen(state);
-        printf("%llu\n", randNum);
+        // printf("%llu\n", randNum);
     }
+
+    float runTime = (float)( clock() - begin_time ) /  CLOCKS_PER_SEC;
+    printf("Time for generating %d random numbers on CPU: %fs\n\n", RAND_N, runTime);
 }

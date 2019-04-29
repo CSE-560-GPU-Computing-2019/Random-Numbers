@@ -1,3 +1,8 @@
 .vscode/
 data/
 a.out
+combinedtauswortheParallel
+combinedtauswortheSerial
+hybridtauswortheParallel
+hybridtauswortheSerial
+mt-19937
