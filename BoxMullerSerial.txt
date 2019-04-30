@@ -1,0 +1,12 @@
+Time for generating 2048 random numbers on CPU: 0.000262s
+
+Time for generating 4096 random numbers on CPU: 0.000505s
+
+Time for generating 8192 random numbers on CPU: 0.000878s
+
+Time for generating 16384 random numbers on CPU: 0.001744s
+
+Time for generating 32768 random numbers on CPU: 0.003554s
+
+Time for generating 65536 random numbers on CPU: 0.007020s
+

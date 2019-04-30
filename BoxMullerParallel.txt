@@ -1,0 +1,26 @@
+16 
+Time taken for 4096 random numbers: 
+Kernel Execution time: 1.4272e-05s
+Overall Time: 0.000665952s
+32 
+Time taken for 8192 random numbers: 
+Kernel Execution time: 7.84e-06s
+Overall Time: 0.00115552s
+64 
+Time taken for 16384 random numbers: 
+Kernel Execution time: 8.992e-06s
+Overall Time: 0.00222595s
+128 
+Time taken for 32768 random numbers: 
+Kernel Execution time: 2.0032e-05s
+Overall Time: 0.00422672s
+256 
+Time taken for 65536 random numbers: 
+Kernel Execution time: 2.6688e-05s
+Overall Time: 0.00829917s
+512 
+Time taken for 131072 random numbers: 
+Kernel Execution time: 4.0736e-05s
+Overall Time: 0.0169653s
+0.000014 0.000008 0.000009 0.000020 0.000027 0.000041 
+0.000666 0.001156 0.002226 0.004227 0.008299 0.016965 

@@ -1,0 +1,2 @@
+MersenneTwister (GPU), Time = 0.008863 s, TP = 27.079144 GNumbers/s, Size = 240001024
+MersenneTwister (CPU), Time = 0.049229 s, TP = 4.875199 GNumbers/s, Size = 240001024
