@@ -27,11 +27,11 @@ __global__ void RandomBM(double *uniform_normal_device, double *gaussian_device)
 
 
 int main(){
-    freopen("BoxMullerParallel.txt", "w", stdout);
+    // freopen("BoxMullerParallel.txt", "w", stdout);
 
     float ktime[6], tTime[6];
     int q = 0;
-    for(int i = 16; i<=512; i*=2){
+    for(int i = 512; i<=512; i*=2){
         printf("%d ", i);
         printf("\n");
         cudaEvent_t start, stop, memstart, memstop;
@@ -95,10 +95,10 @@ int main(){
 
 
         // WRITE TO A FILE
-        // FILE *F;
-        // F = freopen("NORMAL_RANDOMNUMBERS_BOX.txt", "w", stdout);
-        // for(int i = 0; i<counter; i++) printf("%.17g\n", gaussian_host[i]); 
-        // fclose(F);
+        FILE *F;
+        F = freopen("NORMAL_RANDOMNUMBERS_BOX_GPU.txt", "w", stdout);
+        for(int i = 0; i<counter; i++) printf("%.17g\n", gaussian_host[i]); 
+        fclose(F);
 
         float kernelTime, totalTime;
         cudaEventElapsedTime(&kernelTime, start, stop);

@@ -1,0 +1,30 @@
+N=10000
+gpuTime = 0.000014
+TotalTime = 0.000162
+CPU time: 0.000751
+
+N=100000
+gpuTime = 0.000017
+TotalTime = 0.000362
+CPU time: 0.002063
+
+N=1000000
+gpuTime = 0.000055
+TotalTime = 0.001770
+CPU time: 0.019227
+
+N=10000000
+gpuTime = 0.000422
+TotalTime = 0.015460
+CPU time: 0.204568
+
+N=100000000
+gpuTime = 0.004082
+TotalTime = 0.142966
+CPU time: 2.043762
+
+N=1000000000
+gpuTime = 0.040685
+TotalTime = 1.409458
+CPU time: 20.427052
+

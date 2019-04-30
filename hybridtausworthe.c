@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <ctime>
 #include <stdlib.h>
+#include <string>
+#include <sstream>
+
+using namespace std;
 
 typedef unsigned long long llu;
 
@@ -63,79 +67,85 @@ void initstate(tauswortheState *s, llu seed) {
 }
 
 int main() {
-    freopen("RANDOMNUMBERS_HT_CPU.txt", "w", stdout);
+    for (int xx = 100; xx <= 100000; xx *= 10) {
+        ostringstream os;
+        os << "RANDOMNUMBERS_" << xx << "_HT_CPU.txt";
+        string x = os.str();
+        freopen(x.c_str(), "w", stdout);
 
-    // freopen("HybridSerial.txt", "w", stdout);
-    // for (int i = 10000; i <= 1000000000; i *= 10) {
-    //     int    PATH_N = i;
-    //     int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
-    //     int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
+        // freopen("HybridSerial.txt", "w", stdout);
+        // for (int i = 10000; i <= 1000000000; i *= 10) {
+        //     int    PATH_N = i;
+        //     int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
+        //     int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
 
-    //     printf("%d ", RAND_N);
-    // }
-    // printf("\n");
-    // for (int i = 10000; i <= 1000000000; i *= 10) {
-    //     int    PATH_N = i;
-    //     int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
-    //     int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
-    //     llu seed = 1232;
-    //     tauswortheState *state = (tauswortheState *)malloc(sizeof(tauswortheState));;
+        //     printf("%d ", RAND_N);
+        // }
+        // printf("\n");
+        // for (int i = 10000; i <= 1000000000; i *= 10) {
+        //     int    PATH_N = i;
+        //     int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
+        //     int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
+        //     llu seed = 1232;
+        //     tauswortheState *state = (tauswortheState *)malloc(sizeof(tauswortheState));;
+            
+        //     const clock_t begin_time = clock();
+        //     // llu *randnums = (llu*)malloc(RAND_N * sizeof(llu));
+
+        //     initstate(state, seed);
+        //     llu randNum;
+        //     for (int i = 0; i < RAND_N; ++i) {
+        //         // randNum = gen(state);
+        //         gen(state);
+        //         // printf("%llu\n", randNum);
+        //     }
+
+        //     float runTime = (float)( clock() - begin_time ) /  CLOCKS_PER_SEC;
+        //     // printf("Time for generating %d random numbers on CPU: %fs\n\n", RAND_N, runTime);
+        //     printf("%f ", runTime);
+        // }
+
+        // printf("\n");
+        // for (int i = 10000; i <= 1000000000; i *= 10) {
+        //     int    PATH_N = i;
+        //     int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
+        //     int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
+        //     llu seed = 1232;
+        //     tauswortheState *state = (tauswortheState *)malloc(sizeof(tauswortheState));;
+            
+        //     const clock_t begin_time = clock();
+        //     llu *randnums = (llu*)malloc(RAND_N * sizeof(llu));
+
+        //     initstate(state, seed);
+        //     llu randNum;
+        //     for (int i = 0; i < RAND_N; ++i) {
+        //         randnums[i] = gen(state);
+        //         // randNum = gen(state);
+        //         // gen(state);
+        //         // printf("%llu\n", randNum);
+        //     }
+
+        //     float runTime = (float)( clock() - begin_time ) /  CLOCKS_PER_SEC;
+        //     // printf("Time for generating %d random numbers on CPU: %fs\n\n", RAND_N, runTime);
+        //     printf("%f ", runTime);
+        // }
+        // printf("\n");
+
+
+        llu seed = 1232;
+        tauswortheState *state = (tauswortheState *)malloc(sizeof(tauswortheState));;
         
-    //     const clock_t begin_time = clock();
-    //     // llu *randnums = (llu*)malloc(RAND_N * sizeof(llu));
+        // const clock_t begin_time = clock();
+        // llu *randnums = (llu*)malloc(RAND_N * sizeof(llu));
 
-    //     initstate(state, seed);
-    //     llu randNum;
-    //     for (int i = 0; i < RAND_N; ++i) {
-    //         // randNum = gen(state);
-    //         gen(state);
-    //         // printf("%llu\n", randNum);
-    //     }
-
-    //     float runTime = (float)( clock() - begin_time ) /  CLOCKS_PER_SEC;
-    //     // printf("Time for generating %d random numbers on CPU: %fs\n\n", RAND_N, runTime);
-    //     printf("%f ", runTime);
-    // }
-
-    // printf("\n");
-    // for (int i = 10000; i <= 1000000000; i *= 10) {
-    //     int    PATH_N = i;
-    //     int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
-    //     int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
-    //     llu seed = 1232;
-    //     tauswortheState *state = (tauswortheState *)malloc(sizeof(tauswortheState));;
-        
-    //     const clock_t begin_time = clock();
-    //     llu *randnums = (llu*)malloc(RAND_N * sizeof(llu));
-
-    //     initstate(state, seed);
-    //     llu randNum;
-    //     for (int i = 0; i < RAND_N; ++i) {
-    //         randnums[i] = gen(state);
-    //         // randNum = gen(state);
-    //         // gen(state);
-    //         // printf("%llu\n", randNum);
-    //     }
-
-    //     float runTime = (float)( clock() - begin_time ) /  CLOCKS_PER_SEC;
-    //     // printf("Time for generating %d random numbers on CPU: %fs\n\n", RAND_N, runTime);
-    //     printf("%f ", runTime);
-    // }
-    // printf("\n");
-
-
-    llu seed = 1232;
-    tauswortheState *state = (tauswortheState *)malloc(sizeof(tauswortheState));;
-    
-    // const clock_t begin_time = clock();
-    // llu *randnums = (llu*)malloc(RAND_N * sizeof(llu));
-
-    initstate(state, seed);
-    llu randNum;
-    for (int i = 0; i < 1000000; ++i) {
-        randNum = gen(state);
-        // gen(state);
-        printf("%llu\n", randNum);
+        initstate(state, seed);
+        llu randNum;
+        for (int i = 0; i < xx; ++i) {
+            randNum = gen(state);
+            // gen(state);
+            printf("%llu\n", randNum);
+        }
+        fclose(stdout);
     }
 
     // float runTime = (float)( clock() - begin_time ) /  CLOCKS_PER_SEC;

@@ -51,13 +51,18 @@ int main(){
         for(int i = 0; i<counter; i++) uniform_normal_host[i] = uniform[i]/double(max);
 
 
-        for(llu i = 1; i<RAND_N; i*=2){
-            double r = sqrt(-2*log(uniform[i]));
-            double theta = 2*PI*uniform[i+1];
+        for(llu i = 0; i<RAND_N; i+=2){
+            double r = sqrt(-2*log(uniform_normal_host[i]));
+            double theta = 2*PI*uniform_normal_host[i+1];
             gaussian_host[i] = r*sin(theta);
             gaussian_host[i+1] = r*cos(theta);
             // cout<<"HELLO_2";
         }
+
+        // FILE *F;
+        // F = freopen("NORMAL_RANDOMNUMBERS_BOX_CPU.txt", "w", stdout);
+        // for(int i = 0; i<counter; i++) printf("%.17g\n", gaussian_host[i]); 
+        // fclose(F);
         
         free(gaussian_host);
         free(uniform);

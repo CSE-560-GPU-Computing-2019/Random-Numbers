@@ -1,6 +1,7 @@
 #include "mt-19937.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <ctime>
 
 #define DCMT_SEED 4172
 #define MT_RNG_PERIOD 607
@@ -119,7 +120,7 @@ int iAlignDown(int a, int b)
 }
 
 
-const int    PATH_N = 24000000;
+const int    PATH_N = 1000000;
 const int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
 const int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
 const unsigned int SEED = 777;
@@ -246,52 +247,84 @@ __global__ void gpuRand(float *d_Random, int nPerRng)
 
 int main()
 {
-    FILE *log_file;
-    log_file = fopen("mt-19937.txt", "w"); 
+    // FILE *log_file;
+    // log_file = fopen("mt-19937.txt", "w"); 
 
     float *d_rand_out, *h_randCPU_out, *h_randGPU_out;
 
     //Allocating memory
     h_randCPU_out  = (float *)malloc(RAND_N * sizeof(float));
     h_randGPU_out  = (float *)malloc(RAND_N * sizeof(float));
-    cudaMalloc((void **)&d_rand_out, RAND_N * sizeof(float));
-
+    
     initMTRef("data/MersenneTwister.raw");
     loadMTGPU("data/MersenneTwister.dat");
     seedMTGPU(SEED);
 
-    float hTimer;
-    cudaEvent_t start, stop;
+    cudaEvent_t start, stop, memstart, memstop;
     cudaEventCreate (&start);
-	cudaEventCreate (&stop);
+    cudaEventCreate (&stop);
+    cudaEventCreate (&memstart);
+    cudaEventCreate (&memstop);
 
-    int numIterations = 100;
-	for (int i = -1; i < numIterations; i++)
-	{
-		if (i == 0)
-		{
-			cudaDeviceSynchronize();
-			cudaEventRecord(start, 0);
-		}
-	gpuRand<<<32, 128>>>(d_rand_out, N_PER_RNG);
-    }
+    cudaEventRecord(memstart, 0);
+
+    cudaMalloc((void **)&d_rand_out, RAND_N * sizeof(float));
+
+    float hTimer, memoryTime;
+    
+    // int numIterations = 100;
+	// for (int i = -1; i < numIterations; i++)
+	// {
+	// 	if (i == 0)
+	// 	{
+	// 		cudaDeviceSynchronize();
+	// 		cudaEventRecord(start, 0);
+	// 	}
+	// gpuRand<<<32, 128>>>(d_rand_out, N_PER_RNG);
+    // }
+    cudaEventRecord(start, 0);
+    gpuRand<<<32, 128>>>(d_rand_out, N_PER_RNG);
 
     cudaEventRecord (stop, 0);
-	cudaEventSynchronize (stop);
-	cudaEventElapsedTime (&hTimer, start, stop);
-    float gpuTime = 1.0e-3 * hTimer/(double)numIterations;
-
-    fprintf(log_file, "MersenneTwister (GPU), Time = %f s, TP = %f GNumbers/s, Size = %u\n", gpuTime, 1.0e-9 * RAND_N / gpuTime, RAND_N);
+	
+    // fprintf(log_file, "MersenneTwister (GPU), Time = %f s, TP = %f GNumbers/s, Size = %u\n", gpuTime, 1.0e-9 * RAND_N / gpuTime, RAND_N);
     cudaMemcpy(h_randGPU_out, d_rand_out, RAND_N * sizeof(float), cudaMemcpyDeviceToHost);
 
-    float hTimer_cpu;
-    cudaEventRecord(start, 0);
-    RandomRef(h_randCPU_out, N_PER_RNG, SEED);
-    cudaEventRecord (stop, 0);
-    cudaEventElapsedTime (&hTimer_cpu, start, stop);
-    float cpuTime = 1.0e-3 * hTimer_cpu/(double)numIterations;
+    cudaEventRecord(memstop, 0);
 
-    fprintf(log_file, "MersenneTwister (CPU), Time = %f s, TP = %f GNumbers/s, Size = %u\n", cpuTime, 1.0e-9 * RAND_N / cpuTime, RAND_N);
+    cudaEventSynchronize (stop);
+    cudaEventSynchronize(memstop);
+    
+    cudaEventElapsedTime (&hTimer, start, stop);
+    cudaEventElapsedTime(&memoryTime, memstart, memstop);
+    float gpuTime = 1.0e-3 * hTimer;
+    float totalTime = 1.0e-3 * memoryTime;
+
+    printf("N=%d\ngpuTime = %f\nTotalTime = %f\n",PATH_N, gpuTime, totalTime);
+
+    
+
+
+    // freopen("RANDOMNUMBERS_1000000_MT_GPU.txt", "w", stdout);
+
+    // for (int hello = 0; hello < RAND_N; ++hello) {
+    //     printf("%f\n", h_randGPU_out[hello]);
+    // }
+
+    // fclose(stdout);
+
+    const clock_t begin_time = clock();
+    RandomRef(h_randCPU_out, N_PER_RNG, SEED);
+    freopen("RANDOMNUMBERS_1000000_MT_CPU.txt", "w", stdout);
+    for (int hello = 0; hello < RAND_N; ++hello) {
+        printf("%f\n", h_randCPU_out[hello]);
+    }
+    fclose(stdout);
+    float runTime = (float)( clock() - begin_time ) /  CLOCKS_PER_SEC;
+    printf("CPU time: %f\n", runTime);
+    ///(double)numIterations;
+
+    // fprintf(log_file, "MersenneTwister (CPU), Time = %f s, TP = %f GNumbers/s, Size = %u\n", cpuTime, 1.0e-9 * RAND_N / cpuTime, RAND_N);
 
     cudaFree(d_rand_out);
     return 0;
