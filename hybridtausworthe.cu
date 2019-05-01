@@ -14,7 +14,7 @@ int iDivUp(int a, int b){
     return ((a % b) != 0) ? (a / b + 1) : (a / b);
 }
 
-#define MT_RNG_COUNT 4096
+#define MT_RNG_COUNT 2
 
 // int    PATH_N = 1000000;
 // int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
@@ -88,11 +88,11 @@ __global__ void RandomHT(llu *device_array, int npr) {
 }
 
 int main() {
-    for (int xx = 10000; xx <= 100000; xx *= 10) {
+    for (int xx = 10; xx <= 10; xx *= 10) {
         ostringstream os;
         os << "RANDOMNUMBERS_" << xx << "_HT_GPU.txt";
         string x = os.str();
-        freopen(x.c_str(), "w", stdout);
+        // freopen(x.c_str(), "w", stdout);
 
         // freopen("HybridParallel.txt", "w", stdout);
         // for (int i = 10000; i <= 1000000000; i *= 10) {

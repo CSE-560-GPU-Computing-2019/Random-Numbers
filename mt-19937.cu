@@ -5,7 +5,7 @@
 
 #define DCMT_SEED 4172
 #define MT_RNG_PERIOD 607
-#define MT_RNG_COUNT 4096
+#define MT_RNG_COUNT 2
 #define MT_MM 9
 #define MT_NN 19
 #define MT_WMASK 0xFFFFFFFFU
@@ -120,7 +120,7 @@ int iAlignDown(int a, int b)
 }
 
 
-const int    PATH_N = 1000000;
+const int    PATH_N = 10;
 const int N_PER_RNG = iAlignUp(iDivUp(PATH_N, MT_RNG_COUNT), 2);
 const int    RAND_N = MT_RNG_COUNT * N_PER_RNG;
 const unsigned int SEED = 777;
@@ -307,9 +307,9 @@ int main()
 
     // freopen("RANDOMNUMBERS_1000000_MT_GPU.txt", "w", stdout);
 
-    // for (int hello = 0; hello < RAND_N; ++hello) {
-    //     printf("%f\n", h_randGPU_out[hello]);
-    // }
+    for (int hello = 0; hello < RAND_N; ++hello) {
+        printf("%f\n", h_randGPU_out[hello]);
+    }
 
     // fclose(stdout);
 
